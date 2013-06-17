@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package me.lachlanap.dependencyanalyser;
+package me.lachlanap.dependencyanalyser.processing;
 
 import org.apache.bcel.classfile.JavaClass;
 
@@ -22,12 +22,8 @@ public class Task {
         return javaClass;
     }
 
-    public String getID() {
-        return javaClass.getClassName();
-    }
-
     @Override
     public String toString() {
-        return "[Task " + getID() + "]";
+        return "[Task " + javaClass.getClassName() + "]";
     }
 }

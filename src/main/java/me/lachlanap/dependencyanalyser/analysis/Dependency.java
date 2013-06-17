@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package me.lachlanap.dependencyanalyser;
+package me.lachlanap.dependencyanalyser.analysis;
 
 import java.util.Objects;
 import org.apache.bcel.classfile.JavaClass;

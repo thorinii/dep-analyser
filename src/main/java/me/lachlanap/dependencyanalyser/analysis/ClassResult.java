@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package me.lachlanap.dependencyanalyser;
+package me.lachlanap.dependencyanalyser.analysis;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,12 +15,12 @@ import org.apache.bcel.classfile.Method;
  *
  * @author lachlan
  */
-public class Output {
+public class ClassResult {
 
     private final JavaClass javaClass;
     private final Map<String, Dependency> dependencies;
 
-    public Output(JavaClass javaClass) {
+    public ClassResult(JavaClass javaClass) {
         this.javaClass = javaClass;
         dependencies = new HashMap<>();
     }

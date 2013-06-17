@@ -2,21 +2,21 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package me.lachlanap.dependencyanalyser.dot;
+package me.lachlanap.dependencyanalyser.diagram;
 
 import java.io.PrintStream;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import me.lachlanap.dependencyanalyser.Dependency;
-import me.lachlanap.dependencyanalyser.Output;
-import org.apache.bcel.classfile.JavaClass;
+import me.lachlanap.dependencyanalyser.analysis.Analysis;
+import me.lachlanap.dependencyanalyser.analysis.Dependency;
+import me.lachlanap.dependencyanalyser.analysis.ClassResult;
 
 /**
  *
  * @author lachlan
  */
-public class PackageDiagram {
+public class PackageDiagram implements Diagram {
 
     private boolean showGenealogical = true;
     private boolean showStatic = true;
@@ -34,16 +34,16 @@ public class PackageDiagram {
         this.showStatic = showStatic;
     }
 
-    public void convert(List<Output> outputs) {
-        convert(System.out, outputs);
-    }
+    @Override
+    public void generate(PrintStream ps, Analysis analysis) {
+        List<ClassResult> results = analysis.getResults();
 
-    public void convert(PrintStream ps, List<Output> outputs) {
         ps.println("digraph {");
+        ps.println("  rankdir=LR;");
 
         Set<String> packages = new HashSet<>();
         Set<String> entryPoints = new HashSet<>();
-        for (Output output : outputs) {
+        for (ClassResult output : analysis) {
             packages.add(output.getJavaClass().getPackageName());
             if (output.isMain())
                 entryPoints.add(output.getJavaClass().getPackageName());
@@ -54,7 +54,7 @@ public class PackageDiagram {
         ps.println();
         ps.println();
 
-        doConnections(ps, packages, outputs);
+        doConnections(ps, packages, results);
 
         ps.println("}");
     }
@@ -69,15 +69,13 @@ public class PackageDiagram {
         }
     }
 
-    private void doConnections(PrintStream ps, Set<String> packages, List<Output> outputs) {
-        Set<String> donePackages = new HashSet<>();
-
+    private void doConnections(PrintStream ps, Set<String> packages, List<ClassResult> outputs) {
         for (String pack : packages) {
             Set<String> genDeps = new HashSet<>();
             Set<String> staticDeps = new HashSet<>();
             Set<String> execDeps = new HashSet<>();
 
-            for (Output output : outputs) {
+            for (ClassResult output : outputs) {
 
 
                 String thisone = output.getJavaClass().getPackageName();
@@ -95,13 +93,16 @@ public class PackageDiagram {
 
                     switch (dep.getType()) {
                         case Genealogical:
-                            genDeps.add(dep.getJavaClass().getPackageName());
+                            if (showGenealogical)
+                                genDeps.add(dep.getJavaClass().getPackageName());
                             break;
                         case Static:
-                            staticDeps.add(dep.getJavaClass().getPackageName());
+                            if (showStatic)
+                                staticDeps.add(dep.getJavaClass().getPackageName());
                             break;
                         case Executable:
-                            execDeps.add(dep.getJavaClass().getPackageName());
+                            if (showExecutable)
+                                execDeps.add(dep.getJavaClass().getPackageName());
                             break;
                     }
                 }
@@ -109,31 +110,19 @@ public class PackageDiagram {
 
             for (String dep : genDeps) {
                 ps.println("  \"" + pack + "\" -> " + "\"" + dep + "\""
-                        + " [style=bold,color=grey];");
+                        + " [style=bold,color=grey30,weight=4];");
             }
             for (String dep : staticDeps) {
                 ps.println("  \"" + pack + "\" -> " + "\"" + dep + "\""
-                        + " [color=green];");
+                        + " [color=green,weight=1];");
             }
             for (String dep : execDeps) {
                 ps.println("  \"" + pack + "\" -> " + "\"" + dep + "\""
-                        + " [color=red];");
+                        + " [color=red,weight=0,style=dashed];");
             }
 
             ps.println();
         }
 
-    }
-
-    private String getStyle(Dependency dep) {
-        switch (dep.getType()) {
-            case Genealogical:
-                return "style=bold,color=grey";
-            case Static:
-                return "color=green";
-            case Executable:
-            default:
-                return "color=red";
-        }
     }
 }

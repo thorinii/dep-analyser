@@ -2,11 +2,11 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package me.lachlanap.dependencyanalyser;
+package me.lachlanap.dependencyanalyser.processing;
 
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
+import me.lachlanap.dependencyanalyser.analysis.Analysis;
+import me.lachlanap.dependencyanalyser.analysis.ClassResult;
+import me.lachlanap.dependencyanalyser.analysis.Dependency;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.Field;
 import org.apache.bcel.classfile.JavaClass;
@@ -30,53 +30,47 @@ import org.apache.bcel.util.Repository;
 public class Processor {
 
     private final Repository repo;
-    private final Queue<Task> todo;
-    private final Set<String> todoQuickAccess;
-    private final Map<String, Output> finished;
-    private String doNotInclude = "^$";
+    private final TaskSet taskSet;
+    private final Analysis analysis;
+    private ProcessingFilter processingFilter;
 
-    public Processor(
-            Repository repo,
-            Queue<Task> todo,
-            Set<String> todoQuickAccess,
-            Map<String, Output> finished) {
+    public Processor(Repository repo, TaskSet taskSet, Analysis analysis) {
         this.repo = repo;
-        this.todo = todo;
-        this.todoQuickAccess = todoQuickAccess;
-        this.finished = finished;
+        this.taskSet = taskSet;
+        this.analysis = analysis;
+        this.processingFilter = new NullProcessingFilter();
     }
 
-    public void setDoNotInclude(String doNotInclude) {
-        this.doNotInclude = doNotInclude;
+    public void setProcessingFilter(ProcessingFilter processingFilter) {
+        this.processingFilter = processingFilter;
     }
 
     public void run() {
-        while (!todo.isEmpty()) {
-            process(todo.poll());
+        while (taskSet.moreTasks()) {
+            process(taskSet.getNextTask());
         }
     }
 
     private void process(Task task) {
-        todoQuickAccess.remove(task.getID());
-        System.out.println("Processing " + task);
-
-        Output output = new Output(task.getJavaClass());
+        ClassResult output = new ClassResult(task.getJavaClass());
         processInheritance(task, output);
         processFields(task, output);
         processMethods(task, output);
 
-        finished.put(task.getID(), output);
+        taskSet.setFinished(task);
+        analysis.add(output);
     }
 
-    private void processInheritance(Task task, Output output) {
+    private void processInheritance(Task task, ClassResult result) {
         JavaClass c = task.getJavaClass();
 
         try {
             JavaClass sup = c.getSuperClass();
             if (sup != null) {
-                if (!sup.getClassName().matches(doNotInclude)) {
-                    output.addDependency(new Dependency(Dependency.Type.Genealogical, sup));
-                    addTask(new Task(sup));
+                result.addDependency(new Dependency(Dependency.Type.Genealogical, sup));
+
+                if (processingFilter.shouldProcess(sup)) {
+                    addTask(sup);
                 }
             }
         } catch (ClassNotFoundException cnfe) {
@@ -85,9 +79,10 @@ public class Processor {
 
         try {
             for (JavaClass i : c.getInterfaces()) {
-                if (!i.getClassName().matches(doNotInclude)) {
-                    output.addDependency(new Dependency(Dependency.Type.Genealogical, i));
-                    addTask(new Task(i));
+                result.addDependency(new Dependency(Dependency.Type.Genealogical, i));
+
+                if (processingFilter.shouldProcess(i)) {
+                    addTask(i);
                 }
             }
         } catch (ClassNotFoundException cnfe) {
@@ -95,39 +90,39 @@ public class Processor {
         }
     }
 
-    private void processFields(Task task, Output output) {
+    private void processFields(Task task, ClassResult result) {
         JavaClass c = task.getJavaClass();
 
         for (Field f : c.getFields()) {
             try {
                 Type t = f.getType();
-                processType(t, output, Dependency.Type.Static);
+                processType(t, result, Dependency.Type.Static);
             } catch (ClassNotFoundException cnfe) {
                 cnfe.printStackTrace();
             }
         }
     }
 
-    private void processMethods(Task task, Output output) {
+    private void processMethods(Task task, ClassResult result) {
         JavaClass c = task.getJavaClass();
 
         for (Method m : c.getMethods()) {
             try {
-                processType(m.getReturnType(), output, Dependency.Type.Static);
+                processType(m.getReturnType(), result, Dependency.Type.Static);
 
                 for (Type t : m.getArgumentTypes()) {
-                    processType(t, output, Dependency.Type.Static);
+                    processType(t, result, Dependency.Type.Static);
                 }
 
                 if (c.isClass() && !m.isAbstract())
-                    processCode(c, m, output);
+                    processCode(c, m, result);
             } catch (ClassNotFoundException cnfe) {
                 cnfe.printStackTrace();
             }
         }
     }
 
-    private void processCode(JavaClass c, Method m, Output output) {
+    private void processCode(JavaClass c, Method m, ClassResult result) {
         if (m.getCode() == null)
             return;
         InstructionList instructions = new InstructionList(m.getCode().getCode());
@@ -147,9 +142,10 @@ public class Processor {
                             klassName = klassName.replace('/', '.');
 
                             JavaClass field = repo.loadClass(klassName);
-                            if (!field.getClassName().matches(doNotInclude)) {
-                                output.addDependency(new Dependency(Dependency.Type.Executable, field));
-                                addTask(new Task(field));
+                            result.addDependency(new Dependency(Dependency.Type.Executable, field));
+
+                            if (processingFilter.shouldProcess(field)) {
+                                addTask(field);
                             }
                         }
                     }
@@ -157,10 +153,10 @@ public class Processor {
                 if (i instanceof TypedInstruction) {
                     TypedInstruction ti = (TypedInstruction) i;
 
-                    processType(ti.getType(gen), output, Dependency.Type.Executable);
+                    processType(ti.getType(gen), result, Dependency.Type.Executable);
                 } else if (i instanceof NEWARRAY) {
                     NEWARRAY na = (NEWARRAY) i;
-                    processType(na.getType(), output, Dependency.Type.Executable);
+                    processType(na.getType(), result, Dependency.Type.Executable);
                 }
             } catch (ClassNotFoundException cnfe) {
                 cnfe.printStackTrace();
@@ -168,23 +164,20 @@ public class Processor {
         }
     }
 
-    private void addTask(Task task) {
-        if (finished.containsKey(task.getID()) || todoQuickAccess.contains(task.getID()))
-            return;
-
-        todo.add(task);
-        todoQuickAccess.add(task.getID());
+    private void addTask(JavaClass klass) {
+        taskSet.tryAddTask(klass);
     }
 
-    private void processType(Type t, Output output, Dependency.Type kind) throws ClassNotFoundException {
+    private void processType(Type t, ClassResult result, Dependency.Type kind) throws ClassNotFoundException {
         if (t instanceof ReferenceType) {
             if (t instanceof ObjectType) {
                 ObjectType ot = (ObjectType) t;
 
                 JavaClass field = repo.loadClass(ot.getClassName());
-                if (!field.getClassName().matches(doNotInclude)) {
-                    output.addDependency(new Dependency(kind, field));
-                    addTask(new Task(field));
+                result.addDependency(new Dependency(kind, field));
+
+                if (processingFilter.shouldProcess(field)) {
+                    addTask(field);
                 }
             } else if (t instanceof ArrayType) {
                 ArrayType at = (ArrayType) t;
@@ -194,9 +187,10 @@ public class Processor {
                     ObjectType ot = (ObjectType) t;
 
                     JavaClass field = repo.loadClass(ot.getClassName());
-                    if (!field.getClassName().matches(doNotInclude)) {
-                        output.addDependency(new Dependency(kind, field));
-                        addTask(new Task(field));
+                    result.addDependency(new Dependency(kind, field));
+
+                    if (processingFilter.shouldProcess(field)) {
+                        addTask(field);
                     }
                 }
             }

@@ -2,21 +2,22 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package me.lachlanap.dependencyanalyser.dot;
+package me.lachlanap.dependencyanalyser.diagram;
 
 import java.io.PrintStream;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import me.lachlanap.dependencyanalyser.Dependency;
-import me.lachlanap.dependencyanalyser.Output;
+import me.lachlanap.dependencyanalyser.analysis.Analysis;
+import me.lachlanap.dependencyanalyser.analysis.Dependency;
+import me.lachlanap.dependencyanalyser.analysis.ClassResult;
 import org.apache.bcel.classfile.JavaClass;
 
 /**
  *
  * @author lachlan
  */
-public class ClassDiagram {
+public class ClassDiagram implements Diagram {
 
     private boolean showGenealogical = true;
     private boolean showStatic = true;
@@ -34,27 +35,28 @@ public class ClassDiagram {
         this.showStatic = showStatic;
     }
 
-    public void convert(List<Output> outputs) {
-        convert(System.out, outputs);
-    }
-    
-    public void convert(PrintStream ps, List<Output> outputs) {
+    @Override
+    public void generate(PrintStream ps, Analysis analysis) {
+        List<ClassResult> results = analysis.getResults();
+
         ps.println("digraph {");
+        ps.println("  rankdir=LR;");
+        ps.println();
 
-        doClasses(ps, outputs);
+        doClasses(ps, results);
 
         ps.println();
         ps.println();
 
-        doConnections(ps, outputs);
+        doConnections(ps, results);
 
         ps.println("}");
     }
 
-    private void doClasses(PrintStream ps, List<Output> outputs) {
+    private void doClasses(PrintStream ps, List<ClassResult> outputs) {
         Set<String> packages = new HashSet<>();
 
-        for (Output output : outputs) {
+        for (ClassResult output : outputs) {
             packages.add(output.getJavaClass().getPackageName());
         }
 
@@ -62,7 +64,7 @@ public class ClassDiagram {
             ps.println("  subgraph \"cluster_" + pack + "\" {");
             ps.println("    label = \"" + pack + "\";\n");
 
-            for (Output output : outputs) {
+            for (ClassResult output : outputs) {
                 JavaClass klass = output.getJavaClass();
                 if (pack.equals(klass.getPackageName())) {
                     String name = klass.getClassName();
@@ -72,7 +74,7 @@ public class ClassDiagram {
                             + "["
                             + "label=\"" + name.substring(name.lastIndexOf('.') + 1) + "\","
                             + "shape=" + ((klass.isClass()) ? "ellipse" : "box") + ","
-                            + ((output.isMain())? "style=bold,color=red" : "")
+                            + ((output.isMain()) ? "style=bold,color=red" : "")
                             + "];");
                 }
             }
@@ -81,11 +83,11 @@ public class ClassDiagram {
         }
     }
 
-    private void doConnections(PrintStream ps, List<Output> outputs) {
-        for (Output output : outputs) {
+    private void doConnections(PrintStream ps, List<ClassResult> outputs) {
+        for (ClassResult output : outputs) {
             String klass = output.getJavaClass().getClassName();
-
             for (Dependency dep : output.getDependencies()) {
+
                 if (dep.getType() == Dependency.Type.Genealogical && !showGenealogical)
                     continue;
                 if (dep.getType() == Dependency.Type.Static && !showStatic)
@@ -107,12 +109,15 @@ public class ClassDiagram {
     private String getStyle(Dependency dep) {
         switch (dep.getType()) {
             case Genealogical:
-                return "style=bold,color=grey";
+                if (dep.getJavaClass().isInterface())
+                    return "style=bold,color=grey30,weight=4";
+                else
+                    return "style=bold,color=black,weight=4";
             case Static:
-                return "color=green";
+                return "color=green,weight=1";
             case Executable:
             default:
-                return "color=red";
+                return "color=red,weight=0,style=dashed";
         }
     }
 }
