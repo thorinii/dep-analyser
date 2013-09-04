@@ -13,5 +13,4 @@ import org.apache.bcel.classfile.JavaClass;
 public interface ProcessingFilter {
 
     boolean shouldProcess(JavaClass jc);
-    
 }

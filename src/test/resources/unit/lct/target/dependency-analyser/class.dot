@@ -1,0 +1,176 @@
+digraph {
+  rankdir=LR;
+
+  subgraph "cluster_me.lachlanap.lct" {
+    label = "me.lachlanap.lct";
+
+    "me.lachlanap.lct.MainTesting"[label="MainTesting",shape=ellipse,style=bold,color=red];
+    "me.lachlanap.lct.ConstantSettingException"[label="ConstantSettingException",shape=ellipse,];
+    "me.lachlanap.lct.LCTManager"[label="LCTManager",shape=ellipse,];
+    "me.lachlanap.lct.MainTesting$SecondSetOfConstants"[label="MainTesting$SecondSetOfConstants",shape=ellipse,];
+    "me.lachlanap.lct.MainTesting$ClassOfConstantTesting"[label="MainTesting$ClassOfConstantTesting",shape=ellipse,];
+    "me.lachlanap.lct.ConstantException"[label="ConstantException",shape=ellipse,];
+    "me.lachlanap.lct.Constant"[label="Constant",shape=box,];
+  }
+  subgraph "cluster_me.lachlanap.lct.data" {
+    label = "me.lachlanap.lct.data";
+
+    "me.lachlanap.lct.data.LongConstantField"[label="LongConstantField",shape=ellipse,];
+    "me.lachlanap.lct.data.ConstantFieldFactory"[label="ConstantFieldFactory",shape=ellipse,];
+    "me.lachlanap.lct.data.ConstantField"[label="ConstantField",shape=ellipse,];
+    "me.lachlanap.lct.data.ClassInspector"[label="ClassInspector",shape=ellipse,];
+    "me.lachlanap.lct.data.FloatConstantField"[label="FloatConstantField",shape=ellipse,];
+    "me.lachlanap.lct.data.DoubleConstantField"[label="DoubleConstantField",shape=ellipse,];
+    "me.lachlanap.lct.data.IntConstantField"[label="IntConstantField",shape=ellipse,];
+  }
+  subgraph "cluster_me.lachlanap.lct.gui" {
+    label = "me.lachlanap.lct.gui";
+
+    "me.lachlanap.lct.gui.IntEditor$SliderChangeListener"[label="IntEditor$SliderChangeListener",shape=ellipse,];
+    "me.lachlanap.lct.gui.FloatEditor$TextFieldKeyListener"[label="FloatEditor$TextFieldKeyListener",shape=ellipse,];
+    "me.lachlanap.lct.gui.LCTEditor"[label="LCTEditor",shape=ellipse,];
+    "me.lachlanap.lct.gui.FloatEditor$SliderChangeListener"[label="FloatEditor$SliderChangeListener",shape=ellipse,];
+    "me.lachlanap.lct.gui.ConstantEditor"[label="ConstantEditor",shape=ellipse,];
+    "me.lachlanap.lct.gui.FloatEditor"[label="FloatEditor",shape=ellipse,];
+    "me.lachlanap.lct.gui.LongEditor$TextFieldKeyListener"[label="LongEditor$TextFieldKeyListener",shape=ellipse,];
+    "me.lachlanap.lct.gui.LongEditor$SliderChangeListener"[label="LongEditor$SliderChangeListener",shape=ellipse,];
+    "me.lachlanap.lct.gui.DoubleEditor$TextFieldKeyListener"[label="DoubleEditor$TextFieldKeyListener",shape=ellipse,];
+    "me.lachlanap.lct.gui.ConstantEditorFactory"[label="ConstantEditorFactory",shape=ellipse,];
+    "me.lachlanap.lct.gui.DoubleEditor"[label="DoubleEditor",shape=ellipse,];
+    "me.lachlanap.lct.gui.DoubleEditor$SliderChangeListener"[label="DoubleEditor$SliderChangeListener",shape=ellipse,];
+    "me.lachlanap.lct.gui.IntEditor"[label="IntEditor",shape=ellipse,];
+    "me.lachlanap.lct.gui.IntEditor$TextFieldKeyListener"[label="IntEditor$TextFieldKeyListener",shape=ellipse,];
+    "me.lachlanap.lct.gui.LongEditor"[label="LongEditor",shape=ellipse,];
+    "me.lachlanap.lct.gui.LCTFrame"[label="LCTFrame",shape=ellipse,];
+  }
+  subgraph "cluster_me.lachlanap.lct.spi.impl" {
+    label = "me.lachlanap.lct.spi.impl";
+
+    "me.lachlanap.lct.spi.impl.PrimitivesProvider"[label="PrimitivesProvider",shape=ellipse,];
+  }
+  subgraph "cluster_me.lachlanap.lct.spi" {
+    label = "me.lachlanap.lct.spi";
+
+    "me.lachlanap.lct.spi.ConstantFieldProvider"[label="ConstantFieldProvider",shape=box,];
+  }
+
+
+  "me.lachlanap.lct.MainTesting" -> "me.lachlanap.lct.gui.LCTFrame" [color=red,weight=0,style=dashed];
+  "me.lachlanap.lct.MainTesting" -> "me.lachlanap.lct.MainTesting$SecondSetOfConstants" [color=red,weight=0,style=dashed];
+  "me.lachlanap.lct.MainTesting" -> "me.lachlanap.lct.MainTesting$ClassOfConstantTesting" [color=red,weight=0,style=dashed];
+  "me.lachlanap.lct.MainTesting" -> "me.lachlanap.lct.LCTManager" [color=red,weight=0,style=dashed];
+
+  "me.lachlanap.lct.ConstantSettingException" -> "me.lachlanap.lct.ConstantException" [style=bold,color=black,weight=4];
+  "me.lachlanap.lct.ConstantSettingException" -> "me.lachlanap.lct.data.ConstantField" [color=green,weight=1];
+
+  "me.lachlanap.lct.LCTManager" -> "me.lachlanap.lct.data.ConstantFieldFactory" [color=green,weight=1];
+  "me.lachlanap.lct.LCTManager" -> "me.lachlanap.lct.data.ConstantField" [color=green,weight=1];
+  "me.lachlanap.lct.LCTManager" -> "me.lachlanap.lct.data.ClassInspector" [color=green,weight=1];
+  "me.lachlanap.lct.LCTManager" -> "me.lachlanap.lct.data.IntConstantField" [color=red,weight=0,style=dashed];
+
+  "me.lachlanap.lct.gui.IntEditor$SliderChangeListener" -> "me.lachlanap.lct.gui.IntEditor" [color=green,weight=1];
+  "me.lachlanap.lct.gui.IntEditor$SliderChangeListener" -> "me.lachlanap.lct.data.IntConstantField" [color=red,weight=0,style=dashed];
+
+  "me.lachlanap.lct.gui.FloatEditor$TextFieldKeyListener" -> "me.lachlanap.lct.gui.FloatEditor" [color=green,weight=1];
+  "me.lachlanap.lct.gui.FloatEditor$TextFieldKeyListener" -> "me.lachlanap.lct.data.FloatConstantField" [color=red,weight=0,style=dashed];
+
+  "me.lachlanap.lct.gui.LCTEditor" -> "me.lachlanap.lct.data.ConstantField" [color=red,weight=0,style=dashed];
+  "me.lachlanap.lct.gui.LCTEditor" -> "me.lachlanap.lct.gui.ConstantEditorFactory" [color=green,weight=1];
+  "me.lachlanap.lct.gui.LCTEditor" -> "me.lachlanap.lct.gui.ConstantEditor" [color=red,weight=0,style=dashed];
+  "me.lachlanap.lct.gui.LCTEditor" -> "me.lachlanap.lct.LCTManager" [color=green,weight=1];
+
+  "me.lachlanap.lct.gui.FloatEditor$SliderChangeListener" -> "me.lachlanap.lct.gui.FloatEditor" [color=green,weight=1];
+  "me.lachlanap.lct.gui.FloatEditor$SliderChangeListener" -> "me.lachlanap.lct.data.FloatConstantField" [color=red,weight=0,style=dashed];
+
+  "me.lachlanap.lct.gui.ConstantEditor" -> "me.lachlanap.lct.data.ConstantField" [color=green,weight=1];
+
+  "me.lachlanap.lct.gui.FloatEditor" -> "me.lachlanap.lct.gui.FloatEditor$SliderChangeListener" [color=red,weight=0,style=dashed];
+  "me.lachlanap.lct.gui.FloatEditor" -> "me.lachlanap.lct.data.FloatConstantField" [color=green,weight=1];
+  "me.lachlanap.lct.gui.FloatEditor" -> "me.lachlanap.lct.gui.FloatEditor$TextFieldKeyListener" [color=red,weight=0,style=dashed];
+  "me.lachlanap.lct.gui.FloatEditor" -> "me.lachlanap.lct.gui.ConstantEditor" [style=bold,color=black,weight=4];
+
+  "me.lachlanap.lct.gui.LongEditor$TextFieldKeyListener" -> "me.lachlanap.lct.data.LongConstantField" [color=red,weight=0,style=dashed];
+  "me.lachlanap.lct.gui.LongEditor$TextFieldKeyListener" -> "me.lachlanap.lct.gui.LongEditor" [color=green,weight=1];
+
+  "me.lachlanap.lct.gui.LongEditor$SliderChangeListener" -> "me.lachlanap.lct.data.LongConstantField" [color=red,weight=0,style=dashed];
+  "me.lachlanap.lct.gui.LongEditor$SliderChangeListener" -> "me.lachlanap.lct.gui.LongEditor" [color=green,weight=1];
+
+  "me.lachlanap.lct.gui.DoubleEditor$TextFieldKeyListener" -> "me.lachlanap.lct.data.DoubleConstantField" [color=red,weight=0,style=dashed];
+  "me.lachlanap.lct.gui.DoubleEditor$TextFieldKeyListener" -> "me.lachlanap.lct.gui.DoubleEditor" [color=green,weight=1];
+
+  "me.lachlanap.lct.gui.ConstantEditorFactory" -> "me.lachlanap.lct.gui.FloatEditor" [color=red,weight=0,style=dashed];
+  "me.lachlanap.lct.gui.ConstantEditorFactory" -> "me.lachlanap.lct.data.DoubleConstantField" [color=red,weight=0,style=dashed];
+  "me.lachlanap.lct.gui.ConstantEditorFactory" -> "me.lachlanap.lct.data.FloatConstantField" [color=red,weight=0,style=dashed];
+  "me.lachlanap.lct.gui.ConstantEditorFactory" -> "me.lachlanap.lct.data.LongConstantField" [color=red,weight=0,style=dashed];
+  "me.lachlanap.lct.gui.ConstantEditorFactory" -> "me.lachlanap.lct.ConstantException" [color=red,weight=0,style=dashed];
+  "me.lachlanap.lct.gui.ConstantEditorFactory" -> "me.lachlanap.lct.gui.DoubleEditor" [color=red,weight=0,style=dashed];
+  "me.lachlanap.lct.gui.ConstantEditorFactory" -> "me.lachlanap.lct.data.ConstantField" [color=green,weight=1];
+  "me.lachlanap.lct.gui.ConstantEditorFactory" -> "me.lachlanap.lct.gui.LongEditor" [color=red,weight=0,style=dashed];
+  "me.lachlanap.lct.gui.ConstantEditorFactory" -> "me.lachlanap.lct.gui.IntEditor" [color=red,weight=0,style=dashed];
+  "me.lachlanap.lct.gui.ConstantEditorFactory" -> "me.lachlanap.lct.data.IntConstantField" [color=red,weight=0,style=dashed];
+  "me.lachlanap.lct.gui.ConstantEditorFactory" -> "me.lachlanap.lct.gui.ConstantEditor" [color=green,weight=1];
+
+  "me.lachlanap.lct.gui.DoubleEditor" -> "me.lachlanap.lct.data.DoubleConstantField" [color=green,weight=1];
+  "me.lachlanap.lct.gui.DoubleEditor" -> "me.lachlanap.lct.gui.DoubleEditor$TextFieldKeyListener" [color=red,weight=0,style=dashed];
+  "me.lachlanap.lct.gui.DoubleEditor" -> "me.lachlanap.lct.gui.DoubleEditor$SliderChangeListener" [color=red,weight=0,style=dashed];
+  "me.lachlanap.lct.gui.DoubleEditor" -> "me.lachlanap.lct.gui.ConstantEditor" [style=bold,color=black,weight=4];
+
+  "me.lachlanap.lct.gui.DoubleEditor$SliderChangeListener" -> "me.lachlanap.lct.data.DoubleConstantField" [color=red,weight=0,style=dashed];
+  "me.lachlanap.lct.gui.DoubleEditor$SliderChangeListener" -> "me.lachlanap.lct.gui.DoubleEditor" [color=green,weight=1];
+
+  "me.lachlanap.lct.gui.IntEditor" -> "me.lachlanap.lct.gui.IntEditor$SliderChangeListener" [color=red,weight=0,style=dashed];
+  "me.lachlanap.lct.gui.IntEditor" -> "me.lachlanap.lct.gui.IntEditor$TextFieldKeyListener" [color=red,weight=0,style=dashed];
+  "me.lachlanap.lct.gui.IntEditor" -> "me.lachlanap.lct.data.IntConstantField" [color=green,weight=1];
+  "me.lachlanap.lct.gui.IntEditor" -> "me.lachlanap.lct.gui.ConstantEditor" [style=bold,color=black,weight=4];
+
+  "me.lachlanap.lct.gui.IntEditor$TextFieldKeyListener" -> "me.lachlanap.lct.gui.IntEditor" [color=green,weight=1];
+  "me.lachlanap.lct.gui.IntEditor$TextFieldKeyListener" -> "me.lachlanap.lct.data.IntConstantField" [color=red,weight=0,style=dashed];
+
+  "me.lachlanap.lct.gui.LongEditor" -> "me.lachlanap.lct.gui.LongEditor$TextFieldKeyListener" [color=red,weight=0,style=dashed];
+  "me.lachlanap.lct.gui.LongEditor" -> "me.lachlanap.lct.gui.LongEditor$SliderChangeListener" [color=red,weight=0,style=dashed];
+  "me.lachlanap.lct.gui.LongEditor" -> "me.lachlanap.lct.data.LongConstantField" [color=green,weight=1];
+  "me.lachlanap.lct.gui.LongEditor" -> "me.lachlanap.lct.gui.ConstantEditor" [style=bold,color=black,weight=4];
+
+  "me.lachlanap.lct.gui.LCTFrame" -> "me.lachlanap.lct.gui.LCTEditor" [color=green,weight=1];
+  "me.lachlanap.lct.gui.LCTFrame" -> "me.lachlanap.lct.LCTManager" [color=green,weight=1];
+
+  "me.lachlanap.lct.spi.ConstantFieldProvider" -> "me.lachlanap.lct.Constant" [color=green,weight=1];
+  "me.lachlanap.lct.spi.ConstantFieldProvider" -> "me.lachlanap.lct.data.ConstantField" [color=green,weight=1];
+
+  "me.lachlanap.lct.spi.impl.PrimitivesProvider" -> "me.lachlanap.lct.Constant" [color=green,weight=1];
+  "me.lachlanap.lct.spi.impl.PrimitivesProvider" -> "me.lachlanap.lct.data.DoubleConstantField" [color=red,weight=0,style=dashed];
+  "me.lachlanap.lct.spi.impl.PrimitivesProvider" -> "me.lachlanap.lct.data.FloatConstantField" [color=red,weight=0,style=dashed];
+  "me.lachlanap.lct.spi.impl.PrimitivesProvider" -> "me.lachlanap.lct.data.LongConstantField" [color=red,weight=0,style=dashed];
+  "me.lachlanap.lct.spi.impl.PrimitivesProvider" -> "me.lachlanap.lct.data.ConstantField" [color=green,weight=1];
+  "me.lachlanap.lct.spi.impl.PrimitivesProvider" -> "me.lachlanap.lct.data.IntConstantField" [color=red,weight=0,style=dashed];
+  "me.lachlanap.lct.spi.impl.PrimitivesProvider" -> "me.lachlanap.lct.spi.ConstantFieldProvider" [style=bold,color=grey30,weight=4];
+
+
+
+
+  "me.lachlanap.lct.data.LongConstantField" -> "me.lachlanap.lct.data.ConstantField" [style=bold,color=black,weight=4];
+  "me.lachlanap.lct.data.LongConstantField" -> "me.lachlanap.lct.ConstantSettingException" [color=red,weight=0,style=dashed];
+
+  "me.lachlanap.lct.data.ConstantFieldFactory" -> "me.lachlanap.lct.Constant" [color=green,weight=1];
+  "me.lachlanap.lct.data.ConstantFieldFactory" -> "me.lachlanap.lct.spi.impl.PrimitivesProvider" [color=red,weight=0,style=dashed];
+  "me.lachlanap.lct.data.ConstantFieldFactory" -> "me.lachlanap.lct.ConstantException" [color=red,weight=0,style=dashed];
+  "me.lachlanap.lct.data.ConstantFieldFactory" -> "me.lachlanap.lct.data.ConstantField" [color=green,weight=1];
+  "me.lachlanap.lct.data.ConstantFieldFactory" -> "me.lachlanap.lct.spi.ConstantFieldProvider" [color=green,weight=1];
+
+  "me.lachlanap.lct.data.ConstantField" -> "me.lachlanap.lct.data.IntConstantField" [color=red,weight=0,style=dashed];
+
+  "me.lachlanap.lct.data.ClassInspector" -> "me.lachlanap.lct.Constant" [color=red,weight=0,style=dashed];
+  "me.lachlanap.lct.data.ClassInspector" -> "me.lachlanap.lct.data.ConstantFieldFactory" [color=green,weight=1];
+  "me.lachlanap.lct.data.ClassInspector" -> "me.lachlanap.lct.data.ConstantField" [color=green,weight=1];
+
+  "me.lachlanap.lct.data.FloatConstantField" -> "me.lachlanap.lct.data.ConstantField" [style=bold,color=black,weight=4];
+  "me.lachlanap.lct.data.FloatConstantField" -> "me.lachlanap.lct.ConstantSettingException" [color=red,weight=0,style=dashed];
+
+  "me.lachlanap.lct.data.DoubleConstantField" -> "me.lachlanap.lct.data.ConstantField" [style=bold,color=black,weight=4];
+  "me.lachlanap.lct.data.DoubleConstantField" -> "me.lachlanap.lct.ConstantSettingException" [color=red,weight=0,style=dashed];
+
+  "me.lachlanap.lct.data.IntConstantField" -> "me.lachlanap.lct.data.ConstantField" [style=bold,color=black,weight=4];
+  "me.lachlanap.lct.data.IntConstantField" -> "me.lachlanap.lct.ConstantSettingException" [color=red,weight=0,style=dashed];
+
+
+}

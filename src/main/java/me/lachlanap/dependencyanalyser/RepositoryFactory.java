@@ -16,7 +16,7 @@ import org.apache.bcel.util.Repository;
 public class RepositoryFactory {
 
     public static Repository getRepo(URL jar) {
-        URLClassLoader loader = new URLClassLoader(new URL[]{jar});
+        URLClassLoader loader = new URLClassLoader(new URL[]{jar}, RepositoryFactory.class.getClassLoader());
         return new ClassLoaderRepository(loader);
     }
 }

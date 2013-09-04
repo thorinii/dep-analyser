@@ -39,7 +39,7 @@ public class PackageDiagram implements Diagram {
         List<ClassResult> results = analysis.getResults();
 
         ps.println("digraph {");
-        ps.println("  rankdir=LR;");
+        //ps.println("  rankdir=LR;");
 
         Set<String> packages = new HashSet<>();
         Set<String> entryPoints = new HashSet<>();

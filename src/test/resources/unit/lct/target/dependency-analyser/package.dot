@@ -1,0 +1,32 @@
+digraph {
+  rankdir=LR;
+  "me.lachlanap.lct"[shape=box,style=bold,color=red];
+  "me.lachlanap.lct.data"[shape=box,];
+  "me.lachlanap.lct.gui"[shape=box,];
+  "me.lachlanap.lct.spi.impl"[shape=box,];
+  "me.lachlanap.lct.spi"[shape=box,];
+
+
+  "me.lachlanap.lct" -> "me.lachlanap.lct.data" [color=green,weight=1];
+  "me.lachlanap.lct" -> "me.lachlanap.lct.data" [color=red,weight=0,style=dashed];
+  "me.lachlanap.lct" -> "me.lachlanap.lct.gui" [color=red,weight=0,style=dashed];
+
+  "me.lachlanap.lct.data" -> "me.lachlanap.lct" [color=green,weight=1];
+  "me.lachlanap.lct.data" -> "me.lachlanap.lct.spi" [color=green,weight=1];
+  "me.lachlanap.lct.data" -> "me.lachlanap.lct" [color=red,weight=0,style=dashed];
+  "me.lachlanap.lct.data" -> "me.lachlanap.lct.spi.impl" [color=red,weight=0,style=dashed];
+
+  "me.lachlanap.lct.gui" -> "me.lachlanap.lct" [color=green,weight=1];
+  "me.lachlanap.lct.gui" -> "me.lachlanap.lct.data" [color=green,weight=1];
+  "me.lachlanap.lct.gui" -> "me.lachlanap.lct" [color=red,weight=0,style=dashed];
+  "me.lachlanap.lct.gui" -> "me.lachlanap.lct.data" [color=red,weight=0,style=dashed];
+
+  "me.lachlanap.lct.spi.impl" -> "me.lachlanap.lct.spi" [style=bold,color=grey30,weight=4];
+  "me.lachlanap.lct.spi.impl" -> "me.lachlanap.lct" [color=green,weight=1];
+  "me.lachlanap.lct.spi.impl" -> "me.lachlanap.lct.data" [color=green,weight=1];
+  "me.lachlanap.lct.spi.impl" -> "me.lachlanap.lct.data" [color=red,weight=0,style=dashed];
+
+  "me.lachlanap.lct.spi" -> "me.lachlanap.lct" [color=green,weight=1];
+  "me.lachlanap.lct.spi" -> "me.lachlanap.lct.data" [color=green,weight=1];
+
+}

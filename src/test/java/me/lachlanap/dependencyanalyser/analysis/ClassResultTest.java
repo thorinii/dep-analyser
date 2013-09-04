@@ -23,11 +23,11 @@ public class ClassResultTest extends TestCase {
         JavaClass klass = mock(JavaClass.class);
         when(klass.getClassName()).thenReturn("org.mockito.Mock");
 
-        
-        Dependency d1 = new Dependency(Dependency.Type.Static, klass);
+
+        Dependency d1 = new Dependency(DependencyType.Static, klass);
         result.addDependency(d1);
 
-        Dependency d2 = new Dependency(Dependency.Type.Static, klass);
+        Dependency d2 = new Dependency(DependencyType.Static, klass);
         result.addDependency(d2);
 
         assertEquals(1, result.getDependencies().size());
@@ -39,11 +39,11 @@ public class ClassResultTest extends TestCase {
         JavaClass klass = mock(JavaClass.class);
         when(klass.getClassName()).thenReturn("org.mockito.Mock");
 
-        
-        Dependency d1 = new Dependency(Dependency.Type.Genealogical, klass);
+
+        Dependency d1 = new Dependency(DependencyType.Genealogical, klass);
         result.addDependency(d1);
 
-        Dependency d2 = new Dependency(Dependency.Type.Genealogical, klass);
+        Dependency d2 = new Dependency(DependencyType.Genealogical, klass);
         result.addDependency(d2);
 
         assertEquals(1, result.getDependencies().size());

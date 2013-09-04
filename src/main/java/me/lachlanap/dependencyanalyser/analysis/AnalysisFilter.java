@@ -4,7 +4,6 @@
  */
 package me.lachlanap.dependencyanalyser.analysis;
 
-import me.lachlanap.dependencyanalyser.analysis.ClassResult;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -51,7 +50,7 @@ public class AnalysisFilter {
                         JavaClass parent = getParent(analysis, dep.getJavaClass().getClassName());
                         if (parent != null)
                             dep = new Dependency(dep.getType(), parent);
-                        if (dep.getType() != Dependency.Type.Genealogical)
+                        if (dep.getType() != DependencyType.Genealogical)
                             newO.addDependency(dep);
                     } else
                         newO.addDependency(dep);
@@ -77,7 +76,7 @@ public class AnalysisFilter {
                         JavaClass parentClass = getParent(analysis, dep.getJavaClass().getClassName());
                         if (parentClass != null)
                             dep = new Dependency(dep.getType(), parentClass);
-                        if (dep.getType() != Dependency.Type.Genealogical)
+                        if (dep.getType() != DependencyType.Genealogical)
                             parent.addDependency(dep);
                     } else
                         parent.addDependency(dep);
@@ -112,6 +111,8 @@ public class AnalysisFilter {
     }
 
     private String getParent(String sub) {
+        if (sub.indexOf('$') < 0)
+            return null;
         return sub.substring(0, sub.indexOf('$'));
     }
 

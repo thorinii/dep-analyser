@@ -11,6 +11,7 @@ import java.util.Set;
 import me.lachlanap.dependencyanalyser.analysis.Analysis;
 import me.lachlanap.dependencyanalyser.analysis.Dependency;
 import me.lachlanap.dependencyanalyser.analysis.ClassResult;
+import me.lachlanap.dependencyanalyser.analysis.DependencyType;
 import org.apache.bcel.classfile.JavaClass;
 
 /**
@@ -88,11 +89,11 @@ public class ClassDiagram implements Diagram {
             String klass = output.getJavaClass().getClassName();
             for (Dependency dep : output.getDependencies()) {
 
-                if (dep.getType() == Dependency.Type.Genealogical && !showGenealogical)
+                if (dep.getType() == DependencyType.Genealogical && !showGenealogical)
                     continue;
-                if (dep.getType() == Dependency.Type.Static && !showStatic)
+                if (dep.getType() == DependencyType.Static && !showStatic)
                     continue;
-                if (dep.getType() == Dependency.Type.Executable && !showExecutable)
+                if (dep.getType() == DependencyType.Executable && !showExecutable)
                     continue;
 
                 String depKlass = dep.getJavaClass().getClassName();

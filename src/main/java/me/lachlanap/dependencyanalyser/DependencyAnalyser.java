@@ -1,49 +1,32 @@
 package me.lachlanap.dependencyanalyser;
 
-import me.lachlanap.dependencyanalyser.processing.TaskSet;
-import me.lachlanap.dependencyanalyser.processing.Processor;
-import me.lachlanap.dependencyanalyser.analysis.AnalysisFilter;
-import me.lachlanap.dependencyanalyser.analysis.ClassResult;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.net.URLClassLoader;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
-import java.util.jar.JarEntry;
-import java.util.jar.JarInputStream;
 import me.lachlanap.dependencyanalyser.analysis.Analysis;
+import me.lachlanap.dependencyanalyser.analysis.AnalysisFilter;
 import me.lachlanap.dependencyanalyser.diagram.ClassDiagram;
 import me.lachlanap.dependencyanalyser.diagram.PackageDiagram;
-import org.apache.bcel.classfile.JavaClass;
+import me.lachlanap.dependencyanalyser.processing.Processor;
+import me.lachlanap.dependencyanalyser.processing.TaskSet;
 import org.apache.bcel.util.Repository;
-import org.apache.bcel.util.ClassLoaderRepository;
 
 public class DependencyAnalyser {
 
     private final URL jar;
-    private boolean drawGenealogical;
-    private boolean drawStatic;
-    private boolean drawExecutable;
+    private boolean drawGenealogical = true;
+    private boolean drawStatic = true;
+    private boolean drawExecutable = true;
     private AnalysisFilter filter;
 
     public DependencyAnalyser(URL jar) {
         this.jar = jar;
+        filter = new AnalysisFilter(false, new String[]{"com"});
     }
 
     public void setDrawGenealogical(boolean drawGenealogical) {
@@ -117,7 +100,7 @@ public class DependencyAnalyser {
     public static void main(String[] args) throws
             MalformedURLException, URISyntaxException,
             ClassNotFoundException, FileNotFoundException, IOException {
-        final URL jar = Paths.get("./gson-2.2.2.jar").toUri().toURL();
+        final URL jar = Paths.get("./rt.jar").toUri().toURL();
         new DependencyAnalyser(jar).analyseJar("./");
     }
 }

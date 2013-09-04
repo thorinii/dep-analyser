@@ -4,9 +4,14 @@
  */
 package me.lachlanap.dependencyanalyser.processing;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import me.lachlanap.dependencyanalyser.analysis.Analysis;
 import me.lachlanap.dependencyanalyser.analysis.ClassResult;
 import me.lachlanap.dependencyanalyser.analysis.Dependency;
+import me.lachlanap.dependencyanalyser.analysis.DependencyType;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.Field;
 import org.apache.bcel.classfile.JavaClass;
@@ -32,6 +37,8 @@ public class Processor {
     private final Repository repo;
     private final TaskSet taskSet;
     private final Analysis analysis;
+    private final Map<String, JavaClass> cache = new HashMap<>();
+    private final Set<String> bad = new HashSet<>();
     private ProcessingFilter processingFilter;
 
     public Processor(Repository repo, TaskSet taskSet, Analysis analysis) {
@@ -67,7 +74,7 @@ public class Processor {
         try {
             JavaClass sup = c.getSuperClass();
             if (sup != null) {
-                result.addDependency(new Dependency(Dependency.Type.Genealogical, sup));
+                result.addDependency(new Dependency(DependencyType.Genealogical, sup));
 
                 if (processingFilter.shouldProcess(sup)) {
                     addTask(sup);
@@ -79,7 +86,7 @@ public class Processor {
 
         try {
             for (JavaClass i : c.getInterfaces()) {
-                result.addDependency(new Dependency(Dependency.Type.Genealogical, i));
+                result.addDependency(new Dependency(DependencyType.Genealogical, i));
 
                 if (processingFilter.shouldProcess(i)) {
                     addTask(i);
@@ -96,7 +103,7 @@ public class Processor {
         for (Field f : c.getFields()) {
             try {
                 Type t = f.getType();
-                processType(t, result, Dependency.Type.Static);
+                processType(t, result, DependencyType.Static);
             } catch (ClassNotFoundException cnfe) {
                 cnfe.printStackTrace();
             }
@@ -108,10 +115,10 @@ public class Processor {
 
         for (Method m : c.getMethods()) {
             try {
-                processType(m.getReturnType(), result, Dependency.Type.Static);
+                processType(m.getReturnType(), result, DependencyType.Static);
 
                 for (Type t : m.getArgumentTypes()) {
-                    processType(t, result, Dependency.Type.Static);
+                    processType(t, result, DependencyType.Static);
                 }
 
                 if (c.isClass() && !m.isAbstract())
@@ -141,8 +148,8 @@ public class Processor {
                             String klassName = (String) klassValue.getConstantValue(gen.getConstantPool());
                             klassName = klassName.replace('/', '.');
 
-                            JavaClass field = repo.loadClass(klassName);
-                            result.addDependency(new Dependency(Dependency.Type.Executable, field));
+                            JavaClass field = loadClass(klassName);
+                            result.addDependency(new Dependency(DependencyType.Executable, field));
 
                             if (processingFilter.shouldProcess(field)) {
                                 addTask(field);
@@ -152,11 +159,14 @@ public class Processor {
                 }
                 if (i instanceof TypedInstruction) {
                     TypedInstruction ti = (TypedInstruction) i;
-
-                    processType(ti.getType(gen), result, Dependency.Type.Executable);
+                    try {
+                        processType(ti.getType(gen), result, DependencyType.Executable);
+                    } catch (NullPointerException npe) {
+                        System.out.println(i);
+                    }
                 } else if (i instanceof NEWARRAY) {
                     NEWARRAY na = (NEWARRAY) i;
-                    processType(na.getType(), result, Dependency.Type.Executable);
+                    processType(na.getType(), result, DependencyType.Executable);
                 }
             } catch (ClassNotFoundException cnfe) {
                 cnfe.printStackTrace();
@@ -168,12 +178,12 @@ public class Processor {
         taskSet.tryAddTask(klass);
     }
 
-    private void processType(Type t, ClassResult result, Dependency.Type kind) throws ClassNotFoundException {
+    private void processType(Type t, ClassResult result, DependencyType kind) throws ClassNotFoundException {
         if (t instanceof ReferenceType) {
             if (t instanceof ObjectType) {
                 ObjectType ot = (ObjectType) t;
 
-                JavaClass field = repo.loadClass(ot.getClassName());
+                JavaClass field = loadClass(ot.getClassName());
                 result.addDependency(new Dependency(kind, field));
 
                 if (processingFilter.shouldProcess(field)) {
@@ -186,13 +196,30 @@ public class Processor {
                 if (t instanceof ObjectType) {
                     ObjectType ot = (ObjectType) t;
 
-                    JavaClass field = repo.loadClass(ot.getClassName());
+                    JavaClass field = loadClass(ot.getClassName());
                     result.addDependency(new Dependency(kind, field));
 
                     if (processingFilter.shouldProcess(field)) {
                         addTask(field);
                     }
                 }
+            }
+        }
+    }
+
+    private JavaClass loadClass(String name) throws ClassNotFoundException {
+        if (cache.containsKey(name))
+            return cache.get(name);
+        else if (bad.contains(name))
+            throw new ClassNotFoundException(name + " does not exist");
+        else {
+            try {
+                JavaClass klass = repo.loadClass(name);
+                cache.put(name, klass);
+                return klass;
+            } catch (ClassNotFoundException cnfe) {
+                bad.add(name);
+                throw cnfe;
             }
         }
     }

@@ -18,47 +18,47 @@ public class DependencyTest extends TestCase {
     }
 
     public void testIsStrongerThan() {
-        Dependency d1 = new Dependency(Dependency.Type.Executable, null);        
-        Dependency d2 = new Dependency(Dependency.Type.Executable, null);
+        Dependency d1 = new Dependency(DependencyType.Executable, null);
+        Dependency d2 = new Dependency(DependencyType.Executable, null);
 
         assertFalse(d1.isStrongerThan(d2));
         assertFalse(d2.isStrongerThan(d1));
 
-        d2 = new Dependency(Dependency.Type.Static, null);
+        d2 = new Dependency(DependencyType.Static, null);
         assertFalse(d1.isStrongerThan(d2));
         assertTrue(d2.isStrongerThan(d1));
 
-        d2 = new Dependency(Dependency.Type.Genealogical, null);
+        d2 = new Dependency(DependencyType.Genealogical, null);
         assertFalse(d1.isStrongerThan(d2));
         assertTrue(d2.isStrongerThan(d1));
-        
-        
-        d1 = new Dependency(Dependency.Type.Static, null);        
-        d2 = new Dependency(Dependency.Type.Executable, null);
+
+
+        d1 = new Dependency(DependencyType.Static, null);
+        d2 = new Dependency(DependencyType.Executable, null);
 
         assertTrue(d1.isStrongerThan(d2));
         assertFalse(d2.isStrongerThan(d1));
 
-        d2 = new Dependency(Dependency.Type.Static, null);
+        d2 = new Dependency(DependencyType.Static, null);
         assertFalse(d1.isStrongerThan(d2));
         assertFalse(d2.isStrongerThan(d1));
 
-        d2 = new Dependency(Dependency.Type.Genealogical, null);
+        d2 = new Dependency(DependencyType.Genealogical, null);
         assertFalse(d1.isStrongerThan(d2));
         assertTrue(d2.isStrongerThan(d1));
-        
-        
-        d1 = new Dependency(Dependency.Type.Genealogical, null);        
-        d2 = new Dependency(Dependency.Type.Executable, null);
+
+
+        d1 = new Dependency(DependencyType.Genealogical, null);
+        d2 = new Dependency(DependencyType.Executable, null);
 
         assertTrue(d1.isStrongerThan(d2));
         assertFalse(d2.isStrongerThan(d1));
 
-        d2 = new Dependency(Dependency.Type.Static, null);
+        d2 = new Dependency(DependencyType.Static, null);
         assertTrue(d1.isStrongerThan(d2));
         assertFalse(d2.isStrongerThan(d1));
 
-        d2 = new Dependency(Dependency.Type.Genealogical, null);
+        d2 = new Dependency(DependencyType.Genealogical, null);
         assertFalse(d1.isStrongerThan(d2));
         assertFalse(d2.isStrongerThan(d1));
     }

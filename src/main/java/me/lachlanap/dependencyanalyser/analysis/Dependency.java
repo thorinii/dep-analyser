@@ -12,20 +12,15 @@ import org.apache.bcel.classfile.JavaClass;
  * @author lachlan
  */
 public class Dependency {
-
-    public enum Type {
-
-        Genealogical, Static, Executable
-    }
-    private final Type type;
+    private final DependencyType type;
     private final JavaClass javaClass;
 
-    public Dependency(Type type, JavaClass javaClass) {
+    public Dependency(DependencyType type, JavaClass javaClass) {
         this.type = type;
         this.javaClass = javaClass;
     }
 
-    public Type getType() {
+    public DependencyType getType() {
         return type;
     }
 
@@ -42,10 +37,10 @@ public class Dependency {
             case Genealogical:
                 return false;
             case Static:
-                return type == Type.Genealogical;
+                return type == DependencyType.Genealogical;
             case Executable:
             default:
-                return type != Type.Executable;
+                return type != DependencyType.Executable;
         }
     }
 
