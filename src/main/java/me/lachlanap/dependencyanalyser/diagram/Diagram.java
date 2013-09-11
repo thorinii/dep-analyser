@@ -5,7 +5,7 @@
 package me.lachlanap.dependencyanalyser.diagram;
 
 import java.io.PrintStream;
-import me.lachlanap.dependencyanalyser.analysis.Analysis;
+import me.lachlanap.dependencyanalyser.graph.Matrix;
 
 /**
  *
@@ -13,5 +13,11 @@ import me.lachlanap.dependencyanalyser.analysis.Analysis;
  */
 public interface Diagram {
 
-    public void generate(PrintStream ps, Analysis analysis);
+    public void generate(PrintStream ps, Matrix matrix);
+
+    void setShowExecutable(boolean showExecutable);
+
+    void setShowGenealogical(boolean showGenealogical);
+
+    void setShowStatic(boolean showStatic);
 }

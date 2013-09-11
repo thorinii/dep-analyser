@@ -18,6 +18,7 @@ import me.lachlanap.dependencyanalyser.analysis.Analysis;
 import me.lachlanap.dependencyanalyser.analysis.ClassResult;
 import me.lachlanap.dependencyanalyser.diagram.ClassDiagram;
 import me.lachlanap.dependencyanalyser.diagram.PackageDiagram;
+import me.lachlanap.dependencyanalyser.graph.Matrix;
 import me.lachlanap.dependencyanalyser.processing.ExclusionProcessingFilter;
 import me.lachlanap.dependencyanalyser.processing.Processor;
 import me.lachlanap.dependencyanalyser.processing.TaskSet;
@@ -81,7 +82,8 @@ public class DependencyAnalyserMojo extends AbstractMojo {
             String destination = project.getBasedir() + "/target/dependency-analyser/";
 
             Analysis analysis = new Analysis();
-            analyseJar(jarFile, analysis);
+            Matrix matrix = new Matrix();
+            analyseJar(jarFile, matrix);
 
             getLog().info("Filtering irrelevant data...");
             AnalysisFilter filter = new AnalysisFilter(excludePlatformClasses, exclusions);
@@ -94,7 +96,7 @@ public class DependencyAnalyserMojo extends AbstractMojo {
         }
     }
 
-    private void analyseJar(File jarFile, Analysis analysis) throws IOException, MalformedURLException {
+    private void analyseJar(File jarFile, Matrix matrix) throws IOException, MalformedURLException {
         URL jar = jarFile.toURI().toURL();
         TaskSet taskSet = new TaskSet();
 
@@ -106,7 +108,7 @@ public class DependencyAnalyserMojo extends AbstractMojo {
         spider.spider(jar);
 
         getLog().info("Processing...");
-        Processor processor = new Processor(repo, taskSet, analysis);
+        Processor processor = new Processor(repo, taskSet, matrix);
         processor.setProcessingFilter(new ExclusionProcessingFilter(excludePlatformClasses, exclusions));
         processor.run();
     }
@@ -120,25 +122,25 @@ public class DependencyAnalyserMojo extends AbstractMojo {
 
         getLog().info("Writing class diagram...");
 
-        ClassDiagram classDiag = new ClassDiagram();
-        classDiag.setShowGenealogical(drawGenealogicalDependencies);
-        classDiag.setShowStatic(drawStaticDependencies);
-        classDiag.setShowExecutable(drawExecutableDependencies);
+        /*ClassDiagram classDiag = new ClassDiagram();
+         classDiag.setShowGenealogical(drawGenealogicalDependencies);
+         classDiag.setShowStatic(drawStaticDependencies);
+         classDiag.setShowExecutable(drawExecutableDependencies);
 
-        ps = new PrintStream(destination + "class.dot");
-        classDiag.generate(ps, analysis);
-        ps.close();
+         ps = new PrintStream(destination + "class.dot");
+         classDiag.generate(ps, matrix);
+         ps.close();
 
 
-        getLog().info("Writing package diagram...");
+         getLog().info("Writing package diagram...");
 
-        PackageDiagram packDiag = new PackageDiagram();
-        packDiag.setShowGenealogical(drawGenealogicalDependencies);
-        packDiag.setShowStatic(drawStaticDependencies);
-        packDiag.setShowExecutable(drawExecutableDependencies);
+         PackageDiagram packDiag = new PackageDiagram();
+         packDiag.setShowGenealogical(drawGenealogicalDependencies);
+         packDiag.setShowStatic(drawStaticDependencies);
+         packDiag.setShowExecutable(drawExecutableDependencies);
 
-        ps = new PrintStream(destination + "package.dot");
-        packDiag.generate(ps, analysis);
-        ps.close();
+         ps = new PrintStream(destination + "package.dot");
+         packDiag.generate(ps, analysis);
+         ps.close();*/
     }
 }
