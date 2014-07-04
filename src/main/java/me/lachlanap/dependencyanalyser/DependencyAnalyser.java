@@ -8,51 +8,29 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Paths;
-import me.lachlanap.dependencyanalyser.analysis.AnalysisFilter;
 import me.lachlanap.dependencyanalyser.diagram.ClassDiagram;
 import me.lachlanap.dependencyanalyser.diagram.Diagram;
 import me.lachlanap.dependencyanalyser.diagram.PackageDiagram;
 import me.lachlanap.dependencyanalyser.graph.Matrix;
 import me.lachlanap.dependencyanalyser.graph.MatrixOperations;
 import me.lachlanap.dependencyanalyser.processing.Processor;
+import me.lachlanap.dependencyanalyser.processing.Processor.Result;
 import me.lachlanap.dependencyanalyser.processing.TaskSet;
 import org.apache.bcel.util.Repository;
 
 public class DependencyAnalyser {
 
     private final URL jar;
-    private boolean drawGenealogical = true;
-    private boolean drawStatic = true;
-    private boolean drawExecutable = true;
 
     public static void main(String[] args) throws
             MalformedURLException, URISyntaxException,
             ClassNotFoundException, FileNotFoundException, IOException {
-        final URL jar = Paths.get("./lct.jar").toUri().toURL();
-        new DependencyAnalyser(jar).analyseJar("./");
+        final URL jar = Paths.get(args.length > 0 ? args[0] : "./lct.jar").toUri().toURL();
+        new DependencyAnalyser(jar).analyseJar("./diag/");
     }
 
     public DependencyAnalyser(URL jar) {
         this.jar = jar;
-    }
-
-    @Deprecated
-    public void setDrawGenealogical(boolean drawGenealogical) {
-        this.drawGenealogical = drawGenealogical;
-    }
-
-    @Deprecated
-    public void setDrawStatic(boolean drawStatic) {
-        this.drawStatic = drawStatic;
-    }
-
-    @Deprecated
-    public void setDrawExecutable(boolean drawExecutable) {
-        this.drawExecutable = drawExecutable;
-    }
-
-    @Deprecated
-    public void setFilter(AnalysisFilter filter) {
     }
 
     public void analyseJar(String destination) throws
@@ -68,45 +46,48 @@ public class DependencyAnalyser {
         JarSpider spider = new JarSpider(taskSet, repo);
         spider.spider(jar);
 
-        Matrix matrix = new Matrix();
-        Processor processor = new Processor(repo, taskSet, matrix);
+        Processor processor = new Processor(repo, taskSet);
 
         System.out.println("Processing...");
-        processor.run();
+        Result result = processor.run();
 
-        generateDiagrams(destination, matrix);
+        generateDiagrams(destination, result);
     }
 
-    private void generateDiagrams(String destination, Matrix classMatrix) throws FileNotFoundException {
+    private void generateDiagrams(String destination, Result result) throws FileNotFoundException {
+        generateDiagramSet(destination + "gen/", result.inheritance);
+        generateDiagramSet(destination + "static/", result.staticDependencies);
+        generateDiagramSet(destination + "exec/", result.executableDependencies);
+    }
+
+    private void generateDiagramSet(String destination, Matrix classMatrix) throws FileNotFoundException {
         Matrix packageMatrix = MatrixOperations.class2PackageMatrix(classMatrix);
 
         Matrix transitiveClassMatrix = MatrixOperations.transitiveReduction(classMatrix);
-        Matrix transitivePackageMatrix = MatrixOperations.pathMatrix(packageMatrix);
+        Matrix transitivePackageMatrix = MatrixOperations.transitiveReduction(packageMatrix);
 
         File dest = new File(destination);
         if (!dest.exists())
             dest.mkdirs();
 
+        System.out.println(classMatrix);
+        System.out.println(transitiveClassMatrix);
 
-        System.out.println("Writing transitive package diagram...");
+        System.out.println("Writing transitive package diagram to " + destination + "...");
         doDiagram(new PackageDiagram(), destination + "package-transitive.dot", transitivePackageMatrix);
 
-        System.out.println("Writing transitive class diagram...");
+        System.out.println("Writing transitive class diagram to " + destination + "...");
         doDiagram(new ClassDiagram(), destination + "class-transitive.dot", transitiveClassMatrix);
 
 
-        System.out.println("Writing package diagram...");
+        System.out.println("Writing package diagram to " + destination + "...");
         doDiagram(new PackageDiagram(), destination + "package.dot", packageMatrix);
 
-        System.out.println("Writing class diagram...");
+        System.out.println("Writing class diagram to " + destination + "...");
         doDiagram(new ClassDiagram(), destination + "class.dot", classMatrix);
     }
 
     private void doDiagram(Diagram diagram, String file, Matrix matrix) throws FileNotFoundException {
-        diagram.setShowGenealogical(drawGenealogical);
-        diagram.setShowStatic(drawStatic);
-        diagram.setShowExecutable(drawExecutable);
-
         PrintStream ps = new PrintStream(file);
         diagram.generate(ps, matrix);
         ps.close();

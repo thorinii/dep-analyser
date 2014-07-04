@@ -8,8 +8,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import me.lachlanap.dependencyanalyser.analysis.DependencyType;
-import me.lachlanap.dependencyanalyser.graph.Matrix;
+import me.lachlanap.dependencyanalyser.graph.MutableMatrix;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.Field;
 import org.apache.bcel.classfile.JavaClass;
@@ -34,16 +33,14 @@ public class Processor {
 
     private final Repository repo;
     private final TaskSet taskSet;
-    private final Matrix matrix;
     private final Map<String, JavaClass> cache = new HashMap<>();
     private final Set<String> bad = new HashSet<>();
     private ProcessingFilter processingFilter;
 
-    public Processor(Repository repo, TaskSet taskSet, Matrix matrix) {
+    public Processor(Repository repo, TaskSet taskSet) {
         this.repo = repo;
         this.taskSet = taskSet;
         this.processingFilter = new NullProcessingFilter();
-        this.matrix = matrix;
     }
 
     public void setProcessingFilter(ProcessingFilter processingFilter) {
@@ -54,26 +51,32 @@ public class Processor {
         taskSet.tryAddTask(klass);
     }
 
-    public void run() {
+    public Result run() {
+        MutableMatrix gen = new MutableMatrix();
+        MutableMatrix stat = new MutableMatrix();
+        MutableMatrix exec = new MutableMatrix();
+
         while (taskSet.moreTasks())
-            process(taskSet.getNextTask());
+            process(taskSet.getNextTask(), gen, stat, exec);
+
+        return new Result(gen, stat, exec);
     }
 
-    private void process(Task task) {
-        processInheritance(task);
-        processFields(task);
-        processMethods(task);
+    private void process(Task task, MutableMatrix gen, MutableMatrix stat, MutableMatrix exec) {
+        processInheritance(task, gen);
+        processFields(task, stat, exec);
+        processMethods(task, stat, exec);
 
         taskSet.setFinished(task);
     }
 
-    private void processInheritance(Task task) {
+    private void processInheritance(Task task, MutableMatrix gen) {
         JavaClass c = task.getJavaClass();
 
         try {
             JavaClass sup = c.getSuperClass();
             if (sup != null) {
-                matrix.put(c, sup, DependencyType.Genealogical);
+                put(gen, c, sup);
 
                 if (processingFilter.shouldProcess(sup)) {
                     addTask(sup);
@@ -85,7 +88,7 @@ public class Processor {
 
         try {
             for (JavaClass i : c.getInterfaces()) {
-                matrix.put(c, i, DependencyType.Genealogical);
+                put(gen, c, i);
 
                 if (processingFilter.shouldProcess(i)) {
                     addTask(i);
@@ -96,39 +99,41 @@ public class Processor {
         }
     }
 
-    private void processFields(Task task) {
+    private void processFields(Task task, MutableMatrix stat, MutableMatrix exec) {
         JavaClass c = task.getJavaClass();
 
         for (Field f : c.getFields()) {
             try {
                 Type t = f.getType();
-                processType(c, t, DependencyType.Static);
+                processType(c, t, stat);
+                processType(c, t, exec);
             } catch (ClassNotFoundException cnfe) {
                 cnfe.printStackTrace();
             }
         }
     }
 
-    private void processMethods(Task task) {
+    private void processMethods(Task task, MutableMatrix stat, MutableMatrix exec) {
         JavaClass c = task.getJavaClass();
 
         for (Method m : c.getMethods()) {
             try {
-                processType(c, m.getReturnType(), DependencyType.Static);
+                processType(c, m.getReturnType(), stat);
+                processType(c, m.getReturnType(), exec);
 
                 for (Type t : m.getArgumentTypes()) {
-                    processType(c, t, DependencyType.Static);
+                    processType(c, t, stat);
                 }
 
                 if (c.isClass() && !m.isAbstract())
-                    processCode(c, m);
+                    processCode(c, m, stat, exec);
             } catch (ClassNotFoundException cnfe) {
                 cnfe.printStackTrace();
             }
         }
     }
 
-    private void processCode(JavaClass c, Method m) {
+    private void processCode(JavaClass c, Method m, MutableMatrix stat, MutableMatrix exec) {
         if (m.getCode() == null)
             return;
         InstructionList instructions = new InstructionList(m.getCode().getCode());
@@ -148,7 +153,8 @@ public class Processor {
                             klassName = klassName.replace('/', '.');
 
                             JavaClass field = loadClass(klassName);
-                            matrix.put(c, field, DependencyType.Static);
+                            put(stat, c, field);
+                            put(exec, c, field);
 
                             if (processingFilter.shouldProcess(field)) {
                                 addTask(field);
@@ -159,13 +165,13 @@ public class Processor {
                 if (i instanceof TypedInstruction) {
                     TypedInstruction ti = (TypedInstruction) i;
                     try {
-                        processType(c, ti.getType(gen), DependencyType.Executable);
+                        processType(c, ti.getType(gen), exec);
                     } catch (NullPointerException npe) {
                         System.out.println(i);
                     }
                 } else if (i instanceof NEWARRAY) {
                     NEWARRAY na = (NEWARRAY) i;
-                    processType(c, na.getType(), DependencyType.Executable);
+                    processType(c, na.getType(), exec);
                 }
             } catch (ClassNotFoundException cnfe) {
                 cnfe.printStackTrace();
@@ -173,13 +179,13 @@ public class Processor {
         }
     }
 
-    private void processType(JavaClass c, Type t, DependencyType kind) throws ClassNotFoundException {
+    private void processType(JavaClass c, Type t, MutableMatrix matrix) throws ClassNotFoundException {
         if (t instanceof ReferenceType) {
             if (t instanceof ObjectType) {
                 ObjectType ot = (ObjectType) t;
 
                 JavaClass field = loadClass(ot.getClassName());
-                matrix.put(c, field, kind);
+                put(matrix, c, field);
 
                 if (processingFilter.shouldProcess(field)) {
                     addTask(field);
@@ -192,7 +198,7 @@ public class Processor {
                     ObjectType ot = (ObjectType) t;
 
                     JavaClass field = loadClass(ot.getClassName());
-                    matrix.put(c, field, kind);
+                    put(matrix, c, field);
 
                     if (processingFilter.shouldProcess(field)) {
                         addTask(field);
@@ -216,6 +222,27 @@ public class Processor {
                 bad.add(name);
                 throw cnfe;
             }
+        }
+    }
+
+    private void put(MutableMatrix m, JavaClass from, JavaClass to) {
+        String fromName = from.getClassName();
+        String toName = to.getClassName();
+
+        //if (!fromName.startsWith("java") && !toName.startsWith("java"))
+            m.put(from, to);
+    }
+
+    public static class Result {
+
+        public final MutableMatrix inheritance;
+        public final MutableMatrix staticDependencies;
+        public final MutableMatrix executableDependencies;
+
+        public Result(MutableMatrix inheritance, MutableMatrix staticDependencies, MutableMatrix executableDependencies) {
+            this.inheritance = inheritance;
+            this.staticDependencies = staticDependencies;
+            this.executableDependencies = executableDependencies;
         }
     }
 }

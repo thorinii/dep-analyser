@@ -10,15 +10,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.MalformedURLException;
-import java.net.URISyntaxException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 import me.lachlanap.dependencyanalyser.analysis.Analysis;
-import me.lachlanap.dependencyanalyser.analysis.ClassResult;
-import me.lachlanap.dependencyanalyser.diagram.ClassDiagram;
-import me.lachlanap.dependencyanalyser.diagram.PackageDiagram;
-import me.lachlanap.dependencyanalyser.graph.Matrix;
+import me.lachlanap.dependencyanalyser.graph.MutableMatrix;
 import me.lachlanap.dependencyanalyser.processing.ExclusionProcessingFilter;
 import me.lachlanap.dependencyanalyser.processing.Processor;
 import me.lachlanap.dependencyanalyser.processing.TaskSet;
@@ -82,7 +76,7 @@ public class DependencyAnalyserMojo extends AbstractMojo {
             String destination = project.getBasedir() + "/target/dependency-analyser/";
 
             Analysis analysis = new Analysis();
-            Matrix matrix = new Matrix();
+            MutableMatrix matrix = new MutableMatrix();
             analyseJar(jarFile, matrix);
 
             getLog().info("Filtering irrelevant data...");
@@ -96,7 +90,7 @@ public class DependencyAnalyserMojo extends AbstractMojo {
         }
     }
 
-    private void analyseJar(File jarFile, Matrix matrix) throws IOException, MalformedURLException {
+    private void analyseJar(File jarFile, MutableMatrix matrix) throws IOException, MalformedURLException {
         URL jar = jarFile.toURI().toURL();
         TaskSet taskSet = new TaskSet();
 
@@ -108,7 +102,7 @@ public class DependencyAnalyserMojo extends AbstractMojo {
         spider.spider(jar);
 
         getLog().info("Processing...");
-        Processor processor = new Processor(repo, taskSet, matrix);
+        Processor processor = new Processor(repo, taskSet);
         processor.setProcessingFilter(new ExclusionProcessingFilter(excludePlatformClasses, exclusions));
         processor.run();
     }

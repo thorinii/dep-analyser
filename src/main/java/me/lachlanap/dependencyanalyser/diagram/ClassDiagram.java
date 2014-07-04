@@ -17,24 +17,10 @@ import me.lachlanap.dependencyanalyser.graph.Matrix;
  */
 public class ClassDiagram implements Diagram {
 
-    private boolean showGenealogical = true;
-    private boolean showStatic = true;
-    private boolean showExecutable = true;
-
-    @Override
-    public void setShowExecutable(boolean showExecutable) {
-        this.showExecutable = showExecutable;
-    }
-
-    @Override
-    public void setShowGenealogical(boolean showGenealogical) {
-        this.showGenealogical = showGenealogical;
-    }
-
-    @Override
-    public void setShowStatic(boolean showStatic) {
-        this.showStatic = showStatic;
-    }
+    private static final String[] COLOURS = {
+        "red", "green", "blue", "orange", "blueviolet",
+        "darkgoldenrod1", "darkgreen", "cyan", "deeppink2", "grey14", "firebrick"
+    };
 
     @Override
     public void generate(PrintStream ps, Matrix matrix) {
@@ -82,18 +68,13 @@ public class ClassDiagram implements Diagram {
 
     private void doConnections(PrintStream ps, Matrix matrix) {
         for (String klass : matrix.getClasses()) {
+            int i = 0;
             for (String dependency : matrix.getFor(klass)) {
-                DependencyType type = matrix.get(klass, dependency);
-
-                if (type == DependencyType.Genealogical && !showGenealogical)
-                    continue;
-                else if (type == DependencyType.Static && !showStatic)
-                    continue;
-                else if (type == DependencyType.Executable && !showExecutable)
-                    continue;
-
-                ps.println("  \"" + klass + "\" -> " + "\"" + dependency + "\""
-                        + " [" + getStyle(klass, type) + "];");
+                if (matrix.get(klass, dependency)) {
+                    ps.println("  \"" + klass + "\" -> " + "\"" + dependency + "\""
+                            + " [color=" + COLOURS[i % COLOURS.length] + ",weight=1];");
+                    i++;
+                }
             }
 
             ps.println();

@@ -1,5 +1,5 @@
-/class.dot
-/class.png
-/lct.jar
-/package.dot
-/package.png
+/*.dot
+/*.png
+/*.jar
+/*.war
+target

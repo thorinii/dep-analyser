@@ -14,10 +14,4 @@ import me.lachlanap.dependencyanalyser.graph.Matrix;
 public interface Diagram {
 
     public void generate(PrintStream ps, Matrix matrix);
-
-    void setShowExecutable(boolean showExecutable);
-
-    void setShowGenealogical(boolean showGenealogical);
-
-    void setShowStatic(boolean showStatic);
 }

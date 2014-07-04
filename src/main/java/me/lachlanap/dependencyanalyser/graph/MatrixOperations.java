@@ -1,7 +1,5 @@
 package me.lachlanap.dependencyanalyser.graph;
 
-import me.lachlanap.dependencyanalyser.analysis.DependencyType;
-
 /**
  *
  * @author lachlan
@@ -9,20 +7,18 @@ import me.lachlanap.dependencyanalyser.analysis.DependencyType;
 public class MatrixOperations {
 
     public static Matrix pathMatrix(Matrix adjacency) {
-        Matrix path = new Matrix(adjacency);
+        MutableMatrix path = new MutableMatrix(adjacency);
         final int N = adjacency.size();
 
-        for (int k = 0; k < N; k++) {
-            for (int i = 0; i < N; i++) {
-                for (int j = 0; j < N; j++) {
-                    if (i == j)
-                        continue;
-                    if (path.get(i, k) >= 0 && path.get(k, j) >= 0) {
-                        int value = Math.min(path.get(i, k), path.get(k, j));
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                if (i == j)
+                    continue;
+                if (path.get(j, i))
+                    for (int k = 0; k < N; k++)
+                        if (!path.get(j, k))
+                            path.set(j, k, path.get(i, k));
 
-                        path.set(i, j, value);
-                    }
-                }
             }
         }
 
@@ -30,38 +26,35 @@ public class MatrixOperations {
     }
 
     public static Matrix transitiveReduction(Matrix adjacency) {
-        Matrix tr = pathMatrix(adjacency);
+        MutableMatrix tr = (MutableMatrix) pathMatrix(adjacency);
         final int N = adjacency.size();
 
-        System.out.println(tr);
-
-        for (int k = 0; k < N; k++) {
-            for (int i = 0; i < N; i++) {
-                for (int j = 0; j < N; j++) {
-                    if (i == j)
-                        continue;
-
-                    if (i == 1)
-                        System.out.println(adjacency.map(j) + " " + adjacency.map(k));
-                    if (tr.get(i, j) >= 0) {
-                        if (i == 1)
-                            System.out.println(DependencyType.values()[tr.get(i, j)]);
-                        if (tr.get(j, k) >= 0)
+        for (int i = N - 1; i >= 0; i--) {
+            for (int j = 0; j < N; j++) {
+                if (tr.get(i, j)) {
+                    for (int k = 0; k < N; k++) {
+                        if (tr.get(j, k))
                             tr.unset(i, k);
                     }
-
-                    if (i == 1)
-                        System.out.println();
                 }
             }
-            //System.out.println(tr);
+        }
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                if (tr.get(i, j)) {
+                    for (int k = 0; k < N; k++) {
+                        if (tr.get(j, k))
+                            tr.unset(i, k);
+                    }
+                }
+            }
         }
 
         return tr;
     }
 
     public static Matrix class2PackageMatrix(Matrix klassMatrix) {
-        Matrix packageMatrix = new Matrix();
+        MutableMatrix packageMatrix = new MutableMatrix();
         final int N = klassMatrix.size();
 
         for (int i = 0; i < N; i++) {
@@ -72,10 +65,8 @@ public class MatrixOperations {
                 String to = klassMatrix.map(j);
                 to = to.substring(0, to.lastIndexOf('.'));
 
-                int value = klassMatrix.get(i, j);
-
-                if (value >= 0)
-                    packageMatrix.put(from, to, DependencyType.values()[klassMatrix.get(i, j)]);
+                if (klassMatrix.get(i, j))
+                    packageMatrix.put(from, to);
             }
         }
 
